@@ -17,272 +17,271 @@
 <style>
   :root{
     --bg:#050a14; --glass:rgba(255,255,255,.06); --glass-b:rgba(255,255,255,.12);
-    --g1:#22c55e; --g2:#a3e635; --c1:#22d3ee; --p1:#a855f7;
+    /* 화면 높이에 따라 게이지 크기가 자동 조절됨 (한 화면 맞춤의 핵심) */
+    --ring:clamp(104px,18.5dvh,150px);
   }
   *{ -webkit-tap-highlight-color:transparent; }
-  html,body{ background:var(--bg); }
-  body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#e2e8f0; }
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  html,body{ background:var(--bg); height:100%; }
+  body{ font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:#e2e8f0; overscroll-behavior:none; touch-action:manipulation; }
+  button,input{ touch-action:manipulation; }
+  button{ user-select:none; -webkit-user-select:none; }
   .num{ font-family:'Orbitron','Inter',sans-serif; }
 
   /* Aurora background */
   .aurora{ position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
-  .blob{ position:absolute; border-radius:50%; filter:blur(80px); opacity:.55; animation:float 14s ease-in-out infinite; }
-  .b1{ width:380px;height:380px; background:#16a34a; top:-100px; left:-80px; }
-  .b2{ width:340px;height:340px; background:#0891b2; bottom:-80px; right:-60px; animation-delay:-5s; }
-  .b3{ width:280px;height:280px; background:#7c3aed; top:40%; left:55%; animation-delay:-9s; opacity:.35; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(70px); opacity:.5; animation:float 16s ease-in-out infinite; }
+  .b1{ width:340px;height:340px; background:#16a34a; top:-100px; left:-80px; }
+  .b2{ width:320px;height:320px; background:#0891b2; bottom:-80px; right:-60px; animation-delay:-5s; }
+  .b3{ width:260px;height:260px; background:#7c3aed; top:40%; left:55%; animation-delay:-9s; opacity:.3; }
   @keyframes float{ 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-30px) scale(1.12);} 66%{transform:translate(-30px,40px) scale(.92);} }
   .grid-bg{ position:fixed; inset:0; z-index:0; pointer-events:none;
     background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
-    background-size:34px 34px; mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%); }
+    background-size:34px 34px; mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%); -webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%); }
 
-  /* Glass card */
-  .glass{ background:var(--glass); border:1px solid var(--glass-b); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-    box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1); }
+  /* Glass */
+  .glass{ background:var(--glass); border:1px solid var(--glass-b); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 8px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1); }
   .glow-border{ position:relative; }
   .glow-border::before{ content:""; position:absolute; inset:-1px; border-radius:inherit; padding:1px;
     background:linear-gradient(135deg,rgba(34,197,94,.9),rgba(34,211,238,.5),rgba(168,85,247,.8));
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
-
-  /* Gradient text */
   .grad-text{ background:linear-gradient(120deg,#bbf7d0,#4ade80 35%,#22d3ee 70%,#c084fc); -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 0 18px rgba(74,222,128,.45)); }
+    filter:drop-shadow(0 0 14px rgba(74,222,128,.45)); }
 
   /* Gauge */
-  .gauge-arc{ transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); filter:drop-shadow(0 0 8px rgba(74,222,128,.8)); }
+  .ring{ width:var(--ring); height:var(--ring); flex:none; position:relative; }
+  .gauge-arc{ transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); filter:drop-shadow(0 0 6px rgba(74,222,128,.8)); }
   .ring-spin{ transform-origin:center; animation:spin 22s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg);} }
+  #swResult{ font-size:calc(var(--ring)*.165); line-height:1; }
   .pop{ animation:pop .45s cubic-bezier(.22,1,.36,1); }
   @keyframes pop{ 0%{transform:scale(.88);opacity:.4;} 60%{transform:scale(1.06);} 100%{transform:scale(1);opacity:1;} }
+
+  /* Info boxes */
+  .ibox{ border-radius:.75rem; background:rgba(2,6,23,.5); border:1px solid rgba(255,255,255,.1); padding:.3rem .55rem; min-height:36px; display:flex; flex-direction:column; justify-content:center; }
+  .ibox .l{ font-size:9px; color:#94a3b8; line-height:1.2; }
+  .ibox .v{ font-size:11.5px; font-weight:700; line-height:1.3; }
 
   /* Ruler */
   .ruler-track{ background:linear-gradient(90deg,#0ea5e9 0%,#22c55e 30%,#eab308 58%,#f97316 80%,#ef4444 100%); }
   .marker{ transition:left .8s cubic-bezier(.22,1,.36,1); }
 
   /* Sliders */
-  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:9999px; outline:none;
-    background:linear-gradient(90deg,var(--g1) var(--p,50%),rgba(255,255,255,.12) var(--p,50%)); }
-  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:20px;height:20px;border-radius:50%;
-    background:radial-gradient(circle at 35% 35%,#fff,#bbf7d0 60%,#4ade80); border:2px solid #16a34a; box-shadow:0 0 0 4px rgba(74,222,128,.2),0 0 14px rgba(74,222,128,.8); cursor:pointer; }
-  input[type=range]::-moz-range-thumb{ width:18px;height:18px;border-radius:50%; background:#bbf7d0; border:2px solid #16a34a; box-shadow:0 0 14px rgba(74,222,128,.8); cursor:pointer; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:9999px; outline:none; margin:9px 0;
+    background:linear-gradient(90deg,#22c55e var(--p,50%),rgba(255,255,255,.12) var(--p,50%)); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:22px;height:22px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#fff,#bbf7d0 60%,#4ade80); border:2px solid #16a34a; box-shadow:0 0 0 4px rgba(74,222,128,.2),0 0 12px rgba(74,222,128,.8); cursor:pointer; }
+  input[type=range]::-moz-range-thumb{ width:20px;height:20px;border-radius:50%; background:#bbf7d0; border:2px solid #16a34a; box-shadow:0 0 12px rgba(74,222,128,.8); cursor:pointer; }
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
-  input[type=number]{ -moz-appearance:textfield; }
+  input[type=number]{ -moz-appearance:textfield; font-size:20px; } /* 16px 미만이면 iOS가 확대 */
 
-  .chip{ transition:all .15s; }
-  .chip:hover{ background:rgba(74,222,128,.18); border-color:rgba(74,222,128,.6); color:#bbf7d0; transform:translateY(-1px); }
-  .chip:active{ transform:scale(.95); }
-  .step-btn{ transition:all .15s; }
-  .step-btn:active{ transform:scale(.88); }
+  /* Compact controls */
+  .stepper{ display:flex; align-items:center; gap:8px; }
+  .step-btn{ width:44px; height:42px; flex:none; border-radius:.75rem; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); font-size:20px; font-weight:700; transition:all .15s; }
+  .step-btn:active{ transform:scale(.9); background:rgba(74,222,128,.25); }
+  .field{ width:100%; height:42px; text-align:center; background:rgba(2,6,23,.7); border:1px solid rgba(255,255,255,.15); color:#fff; font-weight:800; border-radius:.75rem; padding:0 2rem 0 .5rem; outline:none; transition:all .2s; }
+  .chip{ padding:.3rem .6rem; font-size:11px; min-height:30px; border-radius:.6rem; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:#cbd5e1; transition:all .15s; }
+  .chip:active{ transform:scale(.94); background:rgba(74,222,128,.25); }
+  .unit-on{ color:#020617; background:linear-gradient(90deg,#bef264,#4ade80); box-shadow:0 0 12px rgba(163,230,53,.5); }
+  .unit-off{ color:#94a3b8; }
+  #unitCmBtn,#unitInBtn{ padding:.3rem .8rem; min-height:30px; border-radius:.6rem; font-weight:700; font-size:11px; transition:all .2s; }
+  .card{ border-radius:1rem; padding:.6rem .75rem; }
+
   .btn-shine{ position:relative; overflow:hidden; }
   .btn-shine::after{ content:""; position:absolute; top:0; left:-120%; width:60%; height:100%;
     background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent); transform:skewX(-20deg); animation:shine 3.2s infinite; }
   @keyframes shine{ 0%{left:-120%;} 55%,100%{left:160%;} }
-
-  .fade-in{ animation:fadeUp .7s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes fadeUp{ from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:none;} }
+  .fade-in{ animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeUp{ from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:none;} }
 
   ::-webkit-scrollbar{ width:4px; height:4px; }
   ::-webkit-scrollbar-track{ background:transparent; }
   ::-webkit-scrollbar-thumb{ background:rgba(74,222,128,.4); border-radius:9999px; }
   .row-active{ background:linear-gradient(90deg,rgba(34,197,94,.3),rgba(34,211,238,.1)); color:#d9f99d; font-weight:700; box-shadow:inset 3px 0 0 #4ade80; }
 
-  /* ===== Mobile optimization ===== */
-  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-  body{ overscroll-behavior:none; touch-action:manipulation; }
-  button,input{ touch-action:manipulation; }
-  button{ user-select:none; -webkit-user-select:none; }
-  input[type=number]{ font-size:20px; } /* 16px 미만이면 iOS가 확대함 */
-
-  /* 노치·홈바 영역 보호 */
-  .header-safe{ padding-top:calc(.75rem + env(safe-area-inset-top)); padding-left:max(1rem,env(safe-area-inset-left)); padding-right:max(1rem,env(safe-area-inset-right)); }
-  .footer-safe{ padding-bottom:calc(.75rem + env(safe-area-inset-bottom)); }
+  /* 노치·홈바 안전 영역 */
+  .header-safe{ padding-top:calc(.5rem + env(safe-area-inset-top)); padding-left:max(.75rem,env(safe-area-inset-left)); padding-right:max(.75rem,env(safe-area-inset-right)); }
+  .footer-safe{ padding-bottom:calc(.4rem + env(safe-area-inset-bottom)); }
   .modal-foot{ padding-bottom:calc(.75rem + env(safe-area-inset-bottom)); }
 
-  /* 게이지·결과 글씨 반응형 */
-  .gauge-box{ width:min(250px,68vw); aspect-ratio:1/1; }
-  #swResult{ font-size:clamp(2.2rem,12.5vw,3.1rem); }
-
-  /* 터치 대상 키우기 */
-  .chip{ padding:.45rem .75rem !important; font-size:11px !important; min-height:34px; }
-  #unitCmBtn,#unitInBtn{ min-height:36px; min-width:56px; }
-  .step-btn:active{ background:rgba(74,222,128,.25); }
-
-  @media (pointer:coarse){
-    input[type=range]{ height:8px; margin:6px 0; }
-    input[type=range]::-webkit-slider-thumb{ width:28px; height:28px; }
-    input[type=range]::-moz-range-thumb{ width:26px; height:26px; }
+  /* ===== 화면 높이별 자동 압축 ===== */
+  @media (max-height:640px){
+    .bp-presets{ display:none; }
+    .card{ padding:.5rem .65rem; }
   }
-  @media (hover:none){
-    .chip:hover{ background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.1); color:inherit; transform:none; }
+  @media (max-height:560px){
+    .slider-row{ display:none; }
+  }
+  @media (pointer:coarse){
+    input[type=range]::-webkit-slider-thumb{ width:26px; height:26px; }
+    input[type=range]::-moz-range-thumb{ width:24px; height:24px; }
+  }
+  @media (hover:hover){
+    .chip:hover{ background:rgba(74,222,128,.18); border-color:rgba(74,222,128,.6); color:#bbf7d0; }
+    .step-btn:hover{ background:rgba(74,222,128,.15); }
   }
   @media (max-width:640px){
-    .blob{ filter:blur(55px); opacity:.45; animation-duration:20s; }
+    .blob{ filter:blur(55px); opacity:.42; animation-duration:22s; }
     .b3{ display:none; }
     .glass{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
   }
   @media (max-width:360px){
-    header h1{ font-size:13px; }
-    main{ padding-left:.75rem; padding-right:.75rem; }
+    header h1{ font-size:12px; }
+    .ibox .v{ font-size:10.5px; }
   }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{ animation:none !important; transition:none !important; }
   }
 </style>
 </head>
-<body class="min-h-screen flex justify-center items-start sm:items-center p-0 sm:p-4 selection:bg-green-500 selection:text-white">
+<body class="selection:bg-green-500 selection:text-white flex justify-center items-start sm:items-center sm:p-4">
 
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div class="grid-bg"></div>
 
-<div class="relative z-10 w-full max-w-md h-[100dvh] sm:h-[860px] sm:max-h-[94vh] flex flex-col sm:rounded-[2rem] sm:border sm:border-white/10 sm:bg-slate-950/40 sm:backdrop-blur-sm sm:shadow-[0_0_80px_rgba(34,197,94,.15)] overflow-hidden">
+<div class="relative z-10 w-full max-w-md h-[100dvh] sm:h-[820px] sm:max-h-[94vh] flex flex-col sm:rounded-[2rem] sm:border sm:border-white/10 sm:bg-slate-950/40 sm:backdrop-blur-sm sm:shadow-[0_0_80px_rgba(34,197,94,.15)] overflow-hidden">
 
   <!-- Header -->
-  <header class="header-safe shrink-0 px-4 pb-3 flex items-center justify-between z-20 bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
-    <div class="flex items-center gap-3">
-      <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-700 flex items-center justify-center text-xl shadow-[0_0_20px_rgba(74,222,128,.55)]">
-        ⛳<span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-lime-300 animate-ping"></span><span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-lime-300"></span>
+  <header class="header-safe shrink-0 pb-2 flex items-center justify-between z-20 bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-700 flex items-center justify-center text-lg shadow-[0_0_18px_rgba(74,222,128,.55)] shrink-0">
+        ⛳<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-lime-300 animate-ping"></span><span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-lime-300"></span>
       </div>
-      <div>
-        <h1 class="num text-[15px] font-extrabold tracking-wide grad-text leading-tight">GOLF SWINGWEIGHT</h1>
-        <p class="text-[10px] text-slate-400 tracking-wider">스윙웨이트 계산기 · by 당모루</p>
+      <div class="min-w-0">
+        <h1 class="num text-[14px] font-extrabold tracking-wide grad-text leading-tight whitespace-nowrap">GOLF SWINGWEIGHT</h1>
+        <p class="text-[10px] text-slate-400 tracking-wider whitespace-nowrap">스윙웨이트 계산기 · by 당모루</p>
       </div>
     </div>
-    <button onclick="toggleTableModal()" class="btn-shine px-3 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-lime-300 to-green-400 shadow-[0_0_18px_rgba(163,230,53,.5)] active:scale-95 transition flex items-center gap-1.5">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-      대조표
-    </button>
+    <div class="flex items-center gap-2 shrink-0">
+      <button id="guideBtn" onclick="toggleGuide(event)" aria-label="공식 안내" class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 text-base active:scale-90 transition">💡</button>
+      <button onclick="toggleTableModal()" class="btn-shine h-9 px-3 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-lime-300 to-green-400 shadow-[0_0_16px_rgba(163,230,53,.5)] active:scale-95 transition flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        대조표
+      </button>
+    </div>
   </header>
 
-  <main class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+  <!-- 공식 안내 (플로팅 패널: 화면 공간 절약) -->
+  <div id="guideContent" class="hidden absolute z-30 left-3 right-3 glass bg-slate-950/95 rounded-2xl p-3 text-[11px] text-slate-300 space-y-1.5" style="top:calc(3.4rem + env(safe-area-inset-top));">
+    <p class="font-bold text-white text-xs">💡 스윙웨이트 측정 공식</p>
+    <p>• 공식: <span class="text-lime-300 font-mono">(중심점 거리[in] − 14.0인치) × 클럽 무게[g]</span></p>
+    <p>• cm 단위 선택 시 자동 변환(<span class="font-mono text-cyan-300">cm ÷ 2.54</span>)되어 계산됩니다.</p>
+  </div>
 
-    <!-- Hero Gauge -->
-    <section class="glass glow-border rounded-3xl p-4 relative overflow-hidden fade-in">
-      <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-green-400/20 blur-2xl"></div>
-      <div class="absolute -left-10 -bottom-10 w-40 h-40 rounded-full bg-cyan-400/15 blur-2xl"></div>
+  <main id="mainArea" class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-2 flex flex-col justify-evenly gap-2">
 
-      <div class="text-center relative">
-        <span class="text-[10px] uppercase tracking-[.25em] font-bold text-lime-300 bg-lime-300/10 border border-lime-300/30 px-3 py-1 rounded-full inline-block">Swing Weight Result</span>
-      </div>
+    <!-- Hero -->
+    <section class="glass glow-border rounded-2xl p-2.5 relative overflow-hidden fade-in">
+      <div class="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-green-400/20 blur-2xl pointer-events-none"></div>
+      <div class="absolute -left-10 -bottom-10 w-36 h-36 rounded-full bg-cyan-400/15 blur-2xl pointer-events-none"></div>
 
-      <div class="relative mx-auto mt-2 gauge-box">
-        <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full">
-          <defs>
-            <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#a3e635"/><stop offset="50%" stop-color="#22c55e"/><stop offset="100%" stop-color="#22d3ee"/>
-            </linearGradient>
-          </defs>
-          <g class="ring-spin">
-            <circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1" stroke-dasharray="2 7"/>
-          </g>
-          <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12" stroke-linecap="round"
-                  stroke-dasharray="367.57 490.09" transform="rotate(135 100 100)"/>
-          <circle id="gaugeArc" class="gauge-arc" cx="100" cy="100" r="78" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round"
-                  stroke-dasharray="367.57 490.09" stroke-dashoffset="367.57" transform="rotate(135 100 100)"/>
-        </svg>
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span class="text-[10px] text-slate-400 tracking-widest mb-1">SWING WEIGHT</span>
-          <span id="swResult" class="num text-[3.1rem] leading-none font-black grad-text">D-2.0</span>
-          <p id="swSubText" class="text-[11px] text-slate-300 mt-2.5">대조표 대표값: <span id="swNearest" class="font-extrabold text-lime-300">D-2</span></p>
-          <span id="zoneBadge" class="mt-2 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-green-500/15 text-green-300 border border-green-400/30">D 구간</span>
-        </div>
-      </div>
-
-      <!-- Scale ruler -->
-      <div class="px-1 pt-1 pb-0.5">
-        <div class="relative h-9">
-          <div class="absolute top-4 left-0 right-0 h-2 rounded-full ruler-track opacity-90 shadow-[0_0_14px_rgba(34,197,94,.35)]"></div>
-          <div id="marker" class="marker absolute top-0" style="left:50%;transform:translateX(-50%);">
-            <div class="w-0 h-0 mx-auto border-l-[6px] border-r-[6px] border-t-[9px] border-l-transparent border-r-transparent border-t-white drop-shadow-[0_0_6px_#fff]"></div>
-            <div class="w-4 h-4 -mt-0.5 mx-auto rounded-full bg-white border-[3px] border-green-500 shadow-[0_0_14px_rgba(255,255,255,.9)]" style="margin-top:2px"></div>
+      <div class="relative flex items-center gap-3">
+        <!-- Gauge -->
+        <div class="ring">
+          <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full">
+            <defs>
+              <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#a3e635"/><stop offset="50%" stop-color="#22c55e"/><stop offset="100%" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+            <g class="ring-spin"><circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5" stroke-dasharray="2 7"/></g>
+            <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12" stroke-linecap="round" stroke-dasharray="367.57 490.09" transform="rotate(135 100 100)"/>
+            <circle id="gaugeArc" class="gauge-arc" cx="100" cy="100" r="78" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="367.57 490.09" stroke-dashoffset="367.57" transform="rotate(135 100 100)"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-[8px] text-slate-400 tracking-[.2em] mb-1">SWING WEIGHT</span>
+            <span id="swResult" class="num font-black grad-text">D-2.0</span>
           </div>
         </div>
-        <div class="flex justify-between text-[10px] font-bold text-slate-400 num px-0.5">
-          <span>B-0</span><span>C-0</span><span>D-0</span><span>E-0</span><span>E-9</span>
+
+        <!-- Right info -->
+        <div class="flex-1 min-w-0 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-[10px] text-slate-400 leading-tight">대조표<br>대표값</div>
+            <span id="swNearest" class="num text-2xl font-black text-lime-300 drop-shadow-[0_0_10px_rgba(190,242,100,.6)]">D-2</span>
+            <span id="zoneBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300 border border-green-400/30 whitespace-nowrap">D 구간</span>
+          </div>
+          <div class="ibox">
+            <div class="l">📏 환산 거리 (중심점)</div>
+            <div id="inchDisplay" class="v num text-white">32.0" (81.3cm)</div>
+          </div>
+          <div class="ibox" style="border-color:rgba(74,222,128,.25)">
+            <div class="l">⚖️ Inch·grams 토크</div>
+            <div id="inchGramsDisplay" class="v num text-lime-300">6,150.0</div>
+          </div>
         </div>
       </div>
 
-      <!-- Detail grid -->
-      <div class="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2.5 text-center">
-        <div class="rounded-2xl bg-slate-950/50 border border-white/10 p-2.5">
-          <div class="text-[10px] text-slate-400 mb-0.5">📏 환산 거리 (중심점)</div>
-          <div id="inchDisplay" class="num font-bold text-sm text-white">32.0" (81.3cm)</div>
+      <!-- Ruler -->
+      <div class="relative mt-2 px-2">
+        <div class="relative h-5">
+          <div class="absolute top-2 left-0 right-0 h-1.5 rounded-full ruler-track opacity-90 shadow-[0_0_12px_rgba(34,197,94,.35)]"></div>
+          <div id="marker" class="marker absolute top-0" style="left:50%;transform:translateX(-50%);">
+            <div class="w-3.5 h-3.5 rounded-full bg-white border-[3px] border-green-500 shadow-[0_0_12px_rgba(255,255,255,.9)]"></div>
+          </div>
         </div>
-        <div class="rounded-2xl bg-slate-950/50 border border-green-400/20 p-2.5">
-          <div class="text-[10px] text-slate-400 mb-0.5">⚖️ Inch·grams 토크</div>
-          <div id="inchGramsDisplay" class="num font-bold text-sm text-lime-300">6,150.0</div>
+        <div class="flex justify-between text-[9px] font-bold text-slate-400 num">
+          <span>B-0</span><span>C-0</span><span>D-0</span><span>E-0</span><span>E-9</span>
         </div>
       </div>
     </section>
 
     <!-- Input 1 -->
-    <section class="glass rounded-2xl p-3.5 space-y-2.5 fade-in" style="animation-delay:.1s">
-      <div class="flex justify-between items-center">
-        <label for="totalWeight" class="text-xs font-bold text-slate-100 flex items-center gap-2">
+    <section class="glass card fade-in" style="animation-delay:.1s">
+      <div class="flex justify-between items-center mb-1.5">
+        <label for="totalWeight" class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
           <span class="w-5 h-5 rounded-md bg-gradient-to-br from-green-400 to-emerald-600 text-[11px] font-black text-slate-950 flex items-center justify-center">1</span>
-          클럽 전체 무게
+          클럽 무게
         </label>
         <div class="flex gap-1.5">
-          <button type="button" onclick="setWeight(300.0)" class="chip px-2 py-1 bg-white/5 border border-white/10 text-[10px] rounded-lg text-slate-300">300g</button>
-          <button type="button" onclick="setWeight(315.0)" class="chip px-2 py-1 bg-white/5 border border-white/10 text-[10px] rounded-lg text-slate-300">315g</button>
-          <button type="button" onclick="setWeight(340.0)" class="chip px-2 py-1 bg-white/5 border border-white/10 text-[10px] rounded-lg text-slate-300">340g</button>
+          <button type="button" onclick="setWeight(300.0)" class="chip">300g</button>
+          <button type="button" onclick="setWeight(315.0)" class="chip">315g</button>
+          <button type="button" onclick="setWeight(340.0)" class="chip">340g</button>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="stepWeight(-0.1)" class="step-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-xl font-bold text-green-300 hover:bg-green-400/15">−</button>
+      <div class="stepper">
+        <button type="button" onclick="stepWeight(-0.1)" class="step-btn text-green-300">−</button>
         <div class="relative flex-1">
-          <input type="number" inputmode="decimal" id="totalWeight" step="0.1" value="341.7" oninput="onWeightInput()"
-            class="num w-full text-center bg-slate-950/70 border border-white/15 focus:border-green-400 focus:shadow-[0_0_0_3px_rgba(74,222,128,.2),0_0_20px_rgba(74,222,128,.3)] text-white font-extrabold text-xl rounded-xl pl-3 pr-8 py-2 outline-none transition placeholder-slate-600" placeholder="315.5">
+          <input type="number" inputmode="decimal" id="totalWeight" step="0.1" value="341.7" oninput="onWeightInput()" class="field num focus:border-green-400" placeholder="315.5">
           <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold">g</span>
         </div>
-        <button type="button" onclick="stepWeight(0.1)" class="step-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-xl font-bold text-green-300 hover:bg-green-400/15">+</button>
+        <button type="button" onclick="stepWeight(0.1)" class="step-btn text-green-300">+</button>
       </div>
-      <input type="range" id="weightSlider" min="250" max="400" step="0.1" value="341.7" oninput="onWeightSlider()">
+      <div class="slider-row"><input type="range" id="weightSlider" min="250" max="400" step="0.1" value="341.7" oninput="onWeightSlider()" aria-label="클럽 무게 슬라이더"></div>
     </section>
 
     <!-- Input 2 -->
-    <section class="glass rounded-2xl p-3.5 space-y-2.5 fade-in" style="animation-delay:.2s">
-      <div class="flex justify-between items-center">
-        <label for="balancePoint" class="text-xs font-bold text-slate-100 flex items-center gap-2">
+    <section class="glass card fade-in" style="animation-delay:.2s">
+      <div class="flex justify-between items-center mb-1.5">
+        <label for="balancePoint" class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
           <span class="w-5 h-5 rounded-md bg-gradient-to-br from-cyan-300 to-sky-600 text-[11px] font-black text-slate-950 flex items-center justify-center">2</span>
           중심점 거리
         </label>
-        <div class="bg-slate-950/70 p-0.5 rounded-xl border border-white/10 flex text-[11px] font-bold">
-          <button id="unitCmBtn" type="button" onclick="setUnit('cm')" class="px-3 py-1 rounded-lg text-slate-950 bg-gradient-to-r from-lime-300 to-green-400 shadow-[0_0_12px_rgba(163,230,53,.5)] transition">cm</button>
-          <button id="unitInBtn" type="button" onclick="setUnit('in')" class="px-3 py-1 rounded-lg text-slate-400 transition">inch</button>
+        <div class="bg-slate-950/70 p-0.5 rounded-xl border border-white/10 flex">
+          <button id="unitCmBtn" type="button" onclick="setUnit('cm')" class="unit-on">cm</button>
+          <button id="unitInBtn" type="button" onclick="setUnit('in')" class="unit-off">inch</button>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="stepBP(-0.1)" class="step-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-xl font-bold text-cyan-300 hover:bg-cyan-400/15">−</button>
+      <div class="stepper">
+        <button type="button" onclick="stepBP(-0.1)" class="step-btn text-cyan-300">−</button>
         <div class="relative flex-1">
-          <input type="number" inputmode="decimal" id="balancePoint" step="0.1" value="81.3" oninput="onBPInput()"
-            class="num w-full text-center bg-slate-950/70 border border-white/15 focus:border-cyan-400 focus:shadow-[0_0_0_3px_rgba(34,211,238,.2),0_0_20px_rgba(34,211,238,.3)] text-white font-extrabold text-xl rounded-xl pl-3 pr-10 py-2 outline-none transition placeholder-slate-600" placeholder="입력">
+          <input type="number" inputmode="decimal" id="balancePoint" step="0.1" value="81.3" oninput="onBPInput()" class="field num focus:border-cyan-400" placeholder="입력">
           <span id="unitLabel" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold">cm</span>
         </div>
-        <button type="button" onclick="stepBP(0.1)" class="step-btn w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-xl font-bold text-cyan-300 hover:bg-cyan-400/15">+</button>
+        <button type="button" onclick="stepBP(0.1)" class="step-btn text-cyan-300">+</button>
       </div>
-      <input type="range" id="bpSlider" min="60" max="100" step="0.1" value="81.3" oninput="onBPSlider()">
-      <div id="presetsContainer" class="flex gap-1.5 flex-wrap"></div>
-    </section>
-
-    <!-- Guide -->
-    <section class="glass rounded-2xl overflow-hidden fade-in" style="animation-delay:.3s">
-      <button onclick="toggleGuide()" class="w-full px-4 py-3 text-left text-xs font-semibold text-slate-300 hover:text-white flex justify-between items-center">
-        <span>💡 스윙웨이트 측정 공식 안내</span>
-        <svg id="guideChevron" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-      <div id="guideContent" class="px-4 pb-3 hidden text-[11px] text-slate-400 space-y-1.5 border-t border-white/10 pt-3">
-        <p>• 공식: <span class="text-lime-300 font-mono">(중심점 거리[in] − 14.0인치) × 클럽 무게[g]</span></p>
-        <p>• cm 단위 선택 시 자동 변환(<span class="font-mono text-cyan-300">cm ÷ 2.54</span>)되어 계산됩니다.</p>
-      </div>
+      <div class="slider-row"><input type="range" id="bpSlider" min="60" max="100" step="0.1" value="81.3" oninput="onBPSlider()" aria-label="중심점 거리 슬라이더"></div>
+      <div id="presetsContainer" class="bp-presets flex gap-1.5 flex-wrap"></div>
     </section>
   </main>
 
-  <footer class="footer-safe shrink-0 px-4 pt-3 text-center border-t border-white/10 bg-slate-950/50 backdrop-blur space-y-1">
+  <footer class="footer-safe shrink-0 px-4 pt-2 text-center border-t border-white/10 bg-slate-950/50 backdrop-blur">
     <div class="inline-flex items-center gap-2 text-[11px] text-slate-300">
       <span class="w-5 h-px bg-gradient-to-r from-transparent to-green-400"></span>
       <span>⛳ Made by <span class="font-extrabold grad-text">당모루</span></span>
       <span class="w-5 h-px bg-gradient-to-l from-transparent to-green-400"></span>
     </div>
-    <div class="text-slate-500 text-[9px] tracking-[.2em]">GOLF SWING WEIGHT CALCULATOR • PREMIUM EDITION</div>
   </footer>
 </div>
 
@@ -355,8 +354,6 @@
   ];
 
   const $ = id => document.getElementById(id);
-  const ACTIVE_UNIT = "px-3 py-1 rounded-lg text-slate-950 bg-gradient-to-r from-lime-300 to-green-400 shadow-[0_0_12px_rgba(163,230,53,.5)] transition";
-  const IDLE_UNIT = "px-3 py-1 rounded-lg text-slate-400 transition";
 
   function fillSlider(el){
     const min = parseFloat(el.min), max = parseFloat(el.max), v = parseFloat(el.value) || min;
@@ -370,12 +367,12 @@
     const slider = $('bpSlider');
     if (unit === 'in') {
       if (v > 0) bp.value = (v / 2.54).toFixed(1);
-      $('unitCmBtn').className = IDLE_UNIT; $('unitInBtn').className = ACTIVE_UNIT;
+      $('unitCmBtn').className = 'unit-off'; $('unitInBtn').className = 'unit-on';
       $('unitLabel').textContent = 'in';
       slider.min = 24; slider.max = 40;
     } else {
       if (v > 0) bp.value = (v * 2.54).toFixed(1);
-      $('unitInBtn').className = IDLE_UNIT; $('unitCmBtn').className = ACTIVE_UNIT;
+      $('unitInBtn').className = 'unit-off'; $('unitCmBtn').className = 'unit-on';
       $('unitLabel').textContent = 'cm';
       slider.min = 60; slider.max = 100;
     }
@@ -390,7 +387,7 @@
       ? [[76.2,'76.2cm'],[80.0,'80.0cm'],[81.3,'81.3cm'],[83.8,'83.8cm']]
       : [[30.0,'30.0"'],[31.5,'31.5"'],[32.0,'32.0"'],[33.0,'33.0"']];
     $('presetsContainer').innerHTML = list.map(([v,l]) =>
-      `<button type="button" onclick="setBP(${v})" class="chip px-2.5 py-1 bg-white/5 border border-white/10 text-[10px] rounded-lg text-slate-300">${l}</button>`).join('');
+      `<button type="button" onclick="setBP(${v})" class="chip">${l}</button>`).join('');
   }
 
   // Input sync
@@ -404,6 +401,13 @@
   function setBP(v){ $('balancePoint').value = v; onBPInput(); }
 
   let lastSW = '';
+  function setBadge(text, ok){
+    const b = $('zoneBadge');
+    b.textContent = text;
+    b.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap border ' +
+      (ok ? 'bg-green-500/15 text-green-300 border-green-400/30' : 'bg-red-500/15 text-red-300 border-red-400/30');
+  }
+
   function calculateSwingWeight() {
     fillSlider($('weightSlider')); fillSlider($('bpSlider'));
 
@@ -419,8 +423,8 @@
       $('inchDisplay').textContent = '0.0" (0.0cm)';
       $('inchGramsDisplay').textContent = '0.0';
       $('swResult').textContent = '-';
-      $('swSubText').innerHTML = '입력값을 확인해주세요.';
-      $('zoneBadge').textContent = '—';
+      $('swNearest').textContent = '-';
+      setBadge('입력값 확인', false);
       $('gaugeArc').style.strokeDashoffset = ARC_LEN;
       return;
     }
@@ -445,8 +449,8 @@
 
     let nearest = LOOKUP_TABLE[0], min = Math.abs(inchGrams - nearest.inchGrams);
     for (const r of LOOKUP_TABLE) { const d = Math.abs(inchGrams - r.inchGrams); if (d < min) { min = d; nearest = r; } }
-    $('swSubText').innerHTML = `대조표 대표값: <span id="swNearest" class="font-extrabold text-lime-300">${nearest.sw}</span>`;
-    $('zoneBadge').textContent = `${letter} 구간`;
+    $('swNearest').textContent = nearest.sw;
+    setBadge(`${letter} 구간`, true);
 
     // Gauge & ruler
     const ratio = Math.min(1, Math.max(0, (inchGrams - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)));
@@ -464,10 +468,14 @@
     });
   }
 
-  function toggleGuide() {
+  function toggleGuide(e) {
+    if (e) e.stopPropagation();
     $('guideContent').classList.toggle('hidden');
-    $('guideChevron').classList.toggle('rotate-180');
   }
+  document.addEventListener('click', e => {
+    const g = $('guideContent');
+    if (!g.classList.contains('hidden') && !g.contains(e.target)) g.classList.add('hidden');
+  });
 
   function toggleTableModal() {
     const modal = $('tableModal'), box = $('modalContainer');
@@ -495,12 +503,10 @@
       </tr>`).join('');
   }
 
-  // 모바일: 입력칸 터치 시 전체 선택 + 키보드에 가려지지 않도록 스크롤
+  // 모바일: 입력칸 터치 시 전체 선택 / Enter로 키보드 닫기
   ['totalWeight', 'balancePoint'].forEach(id => {
     const el = $(id);
-    el.addEventListener('focus', () => {
-      setTimeout(() => { el.select(); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 250);
-    });
+    el.addEventListener('focus', () => setTimeout(() => el.select(), 50));
     el.addEventListener('keydown', e => { if (e.key === 'Enter') el.blur(); });
   });
 
